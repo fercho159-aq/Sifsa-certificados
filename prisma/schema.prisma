@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nombre    String
+  email     String   @unique
+  password  String
+  rol       String   @default("OPERADOR") // ADMIN | OPERADOR
+  activo    Boolean  @default(true)
+  creadoEn  DateTime @default(now())
+
+  cargas CargaArchivo[]
+}
+
+model Certificado {
+  id              String   @id @default(cuid())
+  folio           String   @unique
+  fechaServicio   DateTime
+  tecnico         String
+  cliente         String
+  ubicacion       String
+  tipoServicio    String   @default("Fumigación")
+  productos       String   @default("")
+  observaciones   String   @default("")
+  activo          Boolean  @default(true)
+  creadoEn        DateTime @default(now())
+  actualizadoEn   DateTime @updatedAt
+
+  cargaArchivoId String?
+  cargaArchivo   CargaArchivo? @relation(fields: [cargaArchivoId], references: [id])
+}
+
+model CargaArchivo {
+  id              String   @id @default(cuid())
+  nombreArchivo   String
+  tipoArchivo     String   // xlsx | csv
+  totalRegistros  Int
+  registrosExito  Int
+  registrosError  Int
+  errores         String   @default("[]") // JSON string
+  creadoEn        DateTime @default(now())
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  certificados Certificado[]
+}
+
+model ConsultaLog {
+  id          String   @id @default(cuid())
+  folio       String
+  tecnico     String   @default("")
+  fecha       String   @default("")
+  encontrado  Boolean
+  ip          String   @default("")
+  creadoEn    DateTime @default(now())
+}
